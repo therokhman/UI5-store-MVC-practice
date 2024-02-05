@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stores list_HW1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="main.js"></script>
+</head>
+
+<body>
+    <aside class="stores-list-container">
+        <header class="search-container">
+            <h3 class="search-container__title">Stores list</h3>
+        </header>
+        <div class="stores">
+            <div class="search-container__input-elements">
+                <input type="text" class="search-container__search-input" id="search-input" placeholder="Search">
+                <div class="search-container__input-elements__group-buttons">
+                    <button class="search-container__input-elements__button" title="Search">
+                        <span class="input-elements__button__search-icon"></span></button>
+                    <button class="search-container__input-elements__button" title="Refresh">
+                        <span class="input-elements__button__refresh-icon"></span></button>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-buttons__button" title="Collapse"><span class="collapse-icon"></span></button>
+                    <button class="action-buttons__button" title="Pin"><span class="pin-icon"></span></button>
+                </div>
+            </div>
+            <ul class="stores-list"></ul>
+        </div>
+        <footer class="stores__footer">
+            <button class="stores-footer__button--create show-create-store-form-button">
+                <span class="stores-footer__button--create-icon"></span>
+                <span>Create</span>
+            </button>
+        </footer>
+    </aside>
+
+    <main class="store-detail-container">
+        <header class="store-detail__header">
+            <h3 class="store-detail__header__is-not-selected">Store is not selected</h3>
+        </header>
+        <div class="table-space__empty">
+            <div class="table-space__is-not-selected">
+                <p class="store-icon"></p>
+                <p>The store is not selected</p>
+                <p>Please select the store to proceed</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="window-modal" id="create-new-store-form">
+        <div class="window-form">
+            <h2 class="window-form__header">Create new store</h2>
+            <form class="form-create form-create-store">
+                <label for="name">Name:</label>
+                <input type="text" id="name" placeholder="Enter name" required>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Enter email" required>
+
+                <label for="phone">Phone number:</label>
+                <input type="number" id="phone" placeholder="Enter phone number" required maxlength="20">
+
+                <label for="address">Address:</label>
+                <input type="text" id="address" placeholder="Enter address" required>
+
+                <label for="establishedDate">Established Date:</label>
+                <input type="date" id="establishedDate" required>
+
+                <label for="floorArea">Floor area:</label>
+                <input type="number" id="floorArea" placeholder="Enter floor area (in sq.m)" required minlength="1" min="1">
+            </form>
+            <div class="form-create__footer">
+                <button type="button" class="create-store-button create-store-submit-button">Create</button>
+                <button type="button" class="cancel-store-form-button cancel-create-store-form-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-modal" id="create-new-product-form">
+        <div class="window-form window-form_product">
+            <h2 class="window-form__header">Create new product</h2>
+            <form class="form-create form-create-product">
+                <label for="name">Name:</label>
+                <input type="text" id="name" placeholder="Enter name" required>
+
+                <label for="product-price">Price:</label>
+                <div class="input-price"><input type="number" name="" id="product-price" placeholder="Enter price" required min="0">
+                </div>
+
+                <label for="specs">Specs:</label>
+                <input type="text" id="specs" placeholder="Enter product specs" required>
+
+                <label for="rating">Rating:</label>
+                <input type="number" id="rating" placeholder="Enter rating 1..5" required min="1" max="5" step="0.1">
+
+                <label for="supplier">Supplier info:</label>
+                <input type="text" id="supplier" placeholder="Enter supplier info" required>
+
+                <label for="origin-country">Made in:</label>
+                <input type="text" id="origin-country" placeholder="Enter origin country" required>
+
+                <label for="production-name">Production company name:</label>
+                <input type="text" id="production-name" placeholder="Enter manufacturer name" required>
+
+                <label for="status">Status:</label>
+                <select size="3" id="status" required>
+                    <option value="OK">OK</option>
+                    <option value="STORAGE">STORAGE</option>
+                    <option value="OUT_OF_STOCK">OUT_OF_STOCK</option>
+                </select>
+            </form>
+            <div class="form-create__footer">
+                <button type="button" class="create-store-button create-product-submit-button">Create</button>
+                <button type="button" class="cancel-store-form-button cancel-create-product-form-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-modal" id="edit-product-form">
+        <div class="window-form window-form_product">
+            <h2 class="window-form__header">Edit product</h2>
+            <form class="form-create form-edit-product">
+                <label for="name">Name:</label>
+                <input type="text" id="name" placeholder="Enter name" required>
+
+                <label for="product-price">Price:</label>
+                <div class="input-price">
+                    <input type="number" id="product-price" placeholder="Enter price" required min="0">
+                </div>
+
+                <label for="specs">Specs:</label>
+                <input type="text" id="specs" placeholder="Enter product specs" required>
+
+                <label for="rating">Rating:</label>
+                <input type="number" id="rating" placeholder="Enter rating 1..5" required min="1" max="5" step="0.1">
+
+                <label for="supplier">Supplier info:</label>
+                <input type="text" id="supplier" placeholder="Enter supplier info" required>
+
+                <label for="origin-country">Made in:</label>
+                <input type="text" id="origin-country" placeholder="Enter origin country" required>
+
+                <label for="production-name">Production company name:</label>
+                <input type="text" id="production-name" placeholder="Enter manufacturer name" required>
+
+                <label for="status">Status:</label>
+                <select size="3" id="status" required>
+                    <option value="OK">OK</option>
+                    <option value="STORAGE">STORAGE</option>
+                    <option value="OUT_OF_STOCK">OUT_OF_STOCK</option>
+                </select>
+            </form>
+            <div class="form-create__footer">
+                <button type="button" class="create-store-button edit-product-submit-button" id="edit-product-button">Edit</button>
+                <button type="button" class="cancel-store-form-button cancel-edit-product-form-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-modal" id="delete-store-modal">
+        <div class="window-form_delete">
+            <h2 class="window-form__header">Confirmation</h2>
+            <form class="form-delete-store">
+                <p class="delete-main">Are you sure you want to delete this store?</p>
+                <div class="form-confirm__footer">
+                    <button type="button" class="delete-store-ok-button" id="delete-store-ok-confirm">Ok</button>
+                    <button type="button" class="close-confrim-popup-button close-confirm-delete-store-popup-button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="window-modal" id="delete-product-modal">
+        <div class="window-form_delete">
+            <h2 class="window-form__header">Confirmation</h2>
+            <form class="form-delete-product">
+                <p class="delete-main">Are you sure you want to delete this product?</p>
+                <div class="form-confirm__footer">
+                    <button type="button" class="delete-product-ok-button" id="delete-product-ok-confirm">Ok</button>
+                    <button type="button" class="close-confrim-popup-button close-confirm-delete-product-popup-button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="lds-dual-ring" id="loader"></div>
+</body>
+
+</html>

@@ -1,0 +1,591 @@
+/**
+ * Module providing Controller class of the application.
+ *
+ * @module Controller
+ */
+
+/**
+ * @class Controller
+ * @classdesc Controller class responsible for handling interactions between the Model and View.
+ */
+export class Controller {
+    /**
+     * Creates a new instance of the Controller class.
+     * @param {Model} model - The Model instance.
+     * @param {View} view - The View instance.
+     * @property {Model} model - The Model instance associated with the controller.
+     * @property {View} view - The View instance associated with the controller.
+     * @property {function} view.handleStoreItemClick - Handler for store item click event.
+     * @property {function} view.handleQuickSearch - Handler for quick search event.
+     * @property {function} view.filterProducts - Handler for filtering products.
+     * @property {function} view.handleTableExpandText - Handler for expanding/collapsing table cells.
+     * @property {function} view.handleSearch - Handler for search event.
+     * @property {function} view.handleRefresh - Handler for refresh event.
+     * @property {function} view.handleSearchKeydown - Handler for search input keydown event.
+     * @property {function} view.handleSortTable - Handler for sorting table columns.
+     * @property {function} view.createStoreButtonHandler - Handler for creating a store event.
+     * @property {function} view.createStoreSubmit - Handler for submitting a new store form.
+     * @property {function} view.closeCreateStoreForm - Handler for closing the create store form.
+     * @property {function} view.createProductButtonHandler - Handler for creating a product event.
+     * @property {function} view.showDeleteStoreConfirmPopup - Handler for showing delete store confirmation popup.
+     * @property {function} view.closeCreateProductForm - Handler for closing the create product form.
+     * @property {function} view.createProductSubmit - Handler for submitting a new product form.
+     * @property {function} model.closeDeleteStoreConfirmPopup - Handler for closing delete store confirmation popup .
+     * @property {function} view.closeDeleteStoreConfirmPopup - Handler for closing delete store confirmation popup from the view.
+     * @property {function} model.showLoader - Handler for showing loader from the model.
+     * @property {function} view.showEditPopUp - Handler for showing edit popup.
+     * @property {function} view.closeEditProductForm - Handler for closing the edit product form.
+     * @property {function} view.editProductSubmit - Handler for submitting an edited product form.
+     * @property {function} view.showDeleteProductConfirmPopup - Handler for showing delete product confirmation popup.
+     * @property {function} view.closeDeleteProductConfirmPopup - Handler for closing delete product confirmation popup.
+     */
+    constructor(model, view) {
+        this.model = model;
+        this.view = view;
+
+        this.view.handleStoreItemClick = this.handleStoreItemClick;
+        this.view.handleQuickSearch = this.handleQuickSearch;
+        this.view.filterProducts = this.filterProducts;
+        this.view.handleTableExpandText = this.handleTableExpandText;
+        this.view.handleSearch = this.handleSearch;
+        this.view.handleRefresh = this.handleRefresh;
+        this.view.handleSearchKeydown = this.handleSearchKeydown;
+        this.view.handleSortTable = this.handleSortTable;
+        this.view.createStoreButtonHandler = this.createStoreButtonHandler;
+        this.view.createStoreSubmit = this.createStoreSubmit;
+        this.view.closeCreateStoreForm = this.closeCreateStoreForm;
+        this.view.createProductButtonHandler = this.createProductButtonHandler;
+        this.view.showDeleteStoreConfirmPopup = this.showDeleteStoreConfirmPopup;
+        this.view.closeCreateProductForm = this.closeCreateProductForm;
+        this.view.createProductSubmit = this.createProductSubmit;
+        this.model.closeDeleteStoreConfirmPopup = this.closeDeleteStoreConfirmPopup;
+        this.view.closeDeleteStoreConfirmPopup = this.closeDeleteStoreConfirmPopup;
+        this.model.showLoader = this.view.showLoader;
+        this.view.showEditPopUp = this.showEditPopUp;
+        this.view.closeEditProductForm = this.closeEditProductForm;
+        this.view.editProductSubmit = this.editProductSubmit;
+        this.view.showDeleteProductConfirmPopup = this.showDeleteProductConfirmPopup;
+        this.view.closeDeleteProductConfirmPopup = this.closeDeleteProductConfirmPopup;
+    }
+
+    /**
+     * Initializes the controller, fetching and rendering stores.
+     * @returns {void}
+     * @public
+     */
+    init() {
+        this.view.showLoader(true);
+
+        this.model.fetchStores()
+            .then(data => this.view.renderStores(data))
+            .catch((error) => {
+                console.error("Произошла ошибка при загрузке страницы: ", error);
+                alert("Произошла ошибка при загрузке страницы. Пожалуйста, повторите запрос позже!");
+            })
+            .finally(() => this.view.showLoader(false))
+    }
+
+    /**
+     * Handles the search action, fetching and rendering stores based on the search text.
+     * @returns {void}
+     * @public
+     */
+    handleSearch = () => {
+        const searchText = this.view.searchInput.value.toLowerCase();
+
+        if (searchText === "") {
+            return
+        }
+
+        this.view.showLoader(true);
+
+        this.model.fetchStores(searchText)
+            .then(data => this.view.renderStores(data))
+            .catch((error) => {
+                console.error("Произошла ошибка при поиске результатов: ", error);
+                alert("Произошла ошибка при поиске результатов. Пожалуйста, повторите запрос позже!");
+            })
+            .finally(() => this.view.showLoader(false))
+    }
+
+    /**
+     * Handles the refresh action, resetting search input and fetching and rendering stores.
+     * @returns {void}
+     * @public
+     */
+    handleRefresh = () => {
+        this.view.searchInput.value = "";
+        this.view.showLoader(true);
+
+        this.model.fetchStores()
+            .then(data => this.view.renderStores(data))
+            .catch((error) => {
+                console.error("Произошла ошибка при обновлении результатов: ", error);
+                alert("Произошла ошибка при обновлении результатов. Пожалуйста, повторите запрос позже!");
+            })
+            .finally(() => this.view.showLoader(false))
+    }
+
+    /**
+     * Handles the keydown event in the search input.
+     * @param {KeyboardEvent} event - The keydown event object.
+     * @returns {void}
+     * @public
+     */
+    handleSearchKeydown = (event) => {
+        if (event.key === "Enter") {
+            this.handleSearch();
+        }
+    }
+
+    /**
+     * Handles the table cell expand/collapse action.
+     * @param {MouseEvent} event - The click event object.
+     * @returns {void}
+     * @public
+     */
+    handleTableExpandText = (event) => {
+        const clickedElement = event.target;
+
+        const expandableCell = clickedElement.closest(".js-expandable-cell");
+
+        if (expandableCell) {
+            expandableCell.classList.toggle("js-expandable-text");
+        }
+    }
+
+    /**
+     * Handles the click event on a store item, fetching and rendering products for the selected store.
+     * @param {HTMLElement} storeItem - The clicked store item element.
+     * @param {object} store - The store object associated with the clicked item.
+     * @returns {void}
+     * @public
+     */
+    handleStoreItemClick = (storeItem, store) => {
+        if (this.view.selectedStore) {
+            this.view.selectedStore.classList.remove("js-selected-store");
+        }
+    
+        storeItem.classList.add("js-selected-store");
+        this.view.selectedStore = storeItem;
+        this.view.selectedStoreId = store.id;
+        this.view.selectedStoreInfo = store;
+    
+        this.view.showLoader(true);
+    
+        this.model.fetchProducts(store.id)
+            .then(response => this.view.renderStoreDetails(this.view.selectedStoreInfo, response))
+            .catch((error) => {
+                console.error("Произошла ошибка при загрузке магазина: ", error);
+                alert("Произошла ошибка при загрузке магазина. Пожалуйста, повторите запрос позже!");
+            })
+            .finally(() => {
+                this.view.showLoader(false);
+            });
+    }
+
+    /**
+     * Handles the quick search action.
+     * @returns {void}
+     * @public
+     */
+    handleQuickSearch = () => {
+        const searchText = document.getElementById("quickSearchInput").value.toLowerCase();
+        const tableRows = document.querySelectorAll(".products-table tbody tr");
+    
+        tableRows.forEach(row => {
+            const rowShouldBeVisible = Array.from(row.childNodes).some(cell =>
+                cell.textContent.toLowerCase().includes(searchText)
+            );
+    
+            row.style.display = rowShouldBeVisible ? "" : "none";
+        });
+    }
+
+    /**
+     * Filters products based on the specified status.
+     * @param {string} status - The status by which to filter products.
+     * @returns {void}
+     * @public
+     */
+    filterProducts = (status) => {
+        const filterButton = document.querySelector(`.filter-buttons__filter-button-${status.toLowerCase()}`);
+    
+        if (this.view.selectedStatus) {
+            this.view.selectedStatus.classList.remove("js-selected-filter-status");
+        }
+    
+        filterButton.classList.add("js-selected-filter-status");
+        this.view.selectedStatus = filterButton;
+    
+        const tableBody = document.querySelector(".products-table tbody");
+    
+        this.view.showLoader(true);
+    
+        if (status === "OK" || status === "STORAGE" || status === "OUT_OF_STOCK") {
+            this.model.fetchProducts(this.view.selectedStoreId, status)
+                .then((response) => {
+                    this.view.showLoader(false);
+                    tableBody.innerHTML = this.view.renderProductsTable(response);
+                })
+                .catch((error) => {
+                    console.error("Произошла ошибка при фильтрации: ", error);
+                    alert("Произошла ошибка при фильтрации. Пожалуйста, повторите запрос позже!");
+                });
+        } else {
+            this.model.fetchProducts(this.view.selectedStoreId)
+                .then((response) => {
+                    this.view.showLoader(false);
+                    tableBody.innerHTML = this.view.renderProductsTable(response);
+                })
+                .catch((error) => {
+                    console.error("Произошла ошибка при отображении продуктов: ", error);
+                    alert("Произошла ошибка при отображении продуктов. Пожалуйста, повторите запрос позже!");
+                })
+        }
+    }
+    
+    /**
+     * Handles the table column sorting action.
+     * @param {Event} event - The click event object.
+     * @returns {void}
+     * @public
+     */
+    handleSortTable = (event) => {
+        const clickedElement = event.target;
+
+        const isInsideTable = clickedElement.closest(".products-table");
+    
+        if (isInsideTable && clickedElement.classList.contains("js-sort-icon")) {
+            const columnIndex = clickedElement.closest(".js-sort-header").cellIndex;
+    
+            this.view.toggleSortIcon(clickedElement, columnIndex);
+            this._sortTable(columnIndex);
+        }
+    }
+
+    /**
+     * Sorts the products table based on the specified column index.
+     * @param {number} columnIndex - The index of the column by which to sort the table.
+     * @returns {void}
+     * @private
+     */
+    _sortTable(columnIndex) { 
+        const table = document.querySelector(".products-table");
+        const sortedRows = Array.from(table.tBodies[0].rows)
+            .slice(0)
+            .sort((rowA, rowB) => {
+                const cellA = rowA.cells[columnIndex].getAttribute("data-sort");
+                const cellB = rowB.cells[columnIndex].getAttribute("data-sort");
+                const comparison = cellA.localeCompare(cellB, undefined, {
+                    numeric: true,
+                    sensitivity: "base"
+                });
+    
+                return this.view.sortDirection === "asc" ? comparison : -comparison;
+            });
+    
+        table.tBodies[0].innerHTML = "";
+        table.tBodies[0].append(...sortedRows);
+    
+        this.view.sortDirection = this.view.sortDirection === "asc" ? "desc" : "asc";
+    }
+
+    /**
+     * Handles the click event on the "Create Store" button.
+     * @returns {void}
+     * @public
+     */
+    createStoreButtonHandler = () => {
+        document.querySelector("#create-new-store-form").style.display = "flex";
+    }
+
+    /**
+     * Handles the form submission for creating a new store.
+     * @returns {void}
+     * @public
+     */
+    createStoreSubmit = () => {
+        this.view.showLoader(true);
+        const form = document.querySelector(".form-create-store");
+    
+        if (form.checkValidity()) {
+            const inputs = form.querySelectorAll("input");
+            const values = [...inputs].map((input) => input.value);
+    
+            const storeData = {
+                "Name": values[0],
+                "Email": values[1],
+                "PhoneNumber": values[2],
+                "Address": values[3],
+                "Established": values[4],
+                "FloorArea": values[5]
+            }
+    
+            this.model.createStore(storeData)
+                .then(() => this.model.fetchStores())
+                .then((data) => {
+                    this.view.renderStores(data);
+                    return data.pop();
+                })
+                .then((store) => {
+                    this.view.selectedStoreInfo = store;
+                    this.view.selectedStoreId = store.id;
+                    this.view.renderStoreDetails(store, []);
+                })
+                .catch((error) => {
+                    console.error("Произошла ошибка при создании магазина: ", error);
+                    alert("Произошла ошибка при создании магазина. Пожалуйста, повторите запрос позже!");
+                })
+                .finally(() => {
+                    this.closeCreateStoreForm();
+                    this.view.showLoader(false);
+                })
+        } else {
+            alert("Форма не валидна. Пожалуйста, проверьте поля ввода!");
+            this.view.showLoader(false);
+        }
+    }
+
+    /**
+     * Closes the "Create Store" form.
+     * @returns {void}
+     * @public
+     */
+    closeCreateStoreForm = () => {
+        document.querySelector("#create-new-store-form").style.display = "none";
+        this._resetFormInputs(".form-create-store");
+    }
+
+    /**
+     * Resets the input values in the specified form.
+     * @param {string} nodeClass - The class of the form element.
+     * @returns {void}
+     * @private
+     */
+    _resetFormInputs(nodeClass) {
+        const form = document.querySelector(nodeClass);
+        const inputs = form.querySelectorAll("input");
+        inputs.forEach((input) => input.value = "");
+    
+        if (form.contains(form.querySelector("select"))) {
+            const select = form.querySelectorAll("select")
+            select.forEach((option) => option.value = "");
+        }
+    }
+
+    /**
+     * Handles the click event on the "Create Product" button.
+     * @returns {void}
+     * @public
+     */
+    createProductButtonHandler = () => {
+        document.querySelector("#create-new-product-form").style.display = "flex";
+    }
+
+    /**
+     * Handles the form submission for creating a new product.
+     * @returns {void}
+     * @public
+     */
+    createProductSubmit = () => {
+        this.view.showLoader(true);
+        const form = document.querySelector(".form-create-product");
+    
+        if (form.checkValidity()) {
+            const inputs = form.querySelectorAll("input");
+            const inputsValues = [...inputs].map((input) => input.value);
+    
+            const select = form.querySelectorAll("select")
+            const selectValue = [...select].map((option) => option.value);
+    
+            const productData = {
+                "Name": inputsValues[0],
+                "Price": inputsValues[1],
+                "Photo": "photoURL",
+                "Specs": inputsValues[2],
+                "Rating": inputsValues[3],
+                "SupplierInfo": inputsValues[4],
+                "MadeIn": inputsValues[5],
+                "ProductionCompanyName": inputsValues[6],
+                "Status": selectValue,
+                "StoreId": this.view.selectedStoreId
+            }
+    
+            this.model.createProduct(productData, this.view.selectedStoreId)
+                .then((response) => this.model.fetchProducts(response.StoreId))
+                .then((products) => this.view.renderStoreDetails(this.view.selectedStoreInfo, products))
+                .catch((error) => {
+                    console.error("Произошла ошибка при создании продукта: ", error);
+                    alert("Произошла ошибка при создании продукта. Пожалуйста, повторите запрос позже!");
+                })
+                .finally(() => {
+                    this.closeCreateProductForm();
+                    this.view.showLoader(false);
+                });
+        } else {
+            alert("Форма не валидна. Пожалуйста, проверьте поля ввода!");
+            this.view.showLoader(false);
+        }
+    }
+
+    /**
+     * Closes the "Create Product" form.
+     * @returns {void}
+     * @public
+     */
+    closeCreateProductForm = () => {
+        document.querySelector("#create-new-product-form").style.display = "none";
+        this._resetFormInputs(".form-create-product");
+    }
+
+    /**
+     * Shows the confirmation popup for deleting a product.
+     * @param {string} productId - The ID of the product to be deleted.
+     * @param {string} selectedStoreId - The ID of the selected store.
+     * @returns {void}
+     * @public
+     */
+    showDeleteProductConfirmPopup = (productId, selectedStoreId) => {
+        document.querySelector("#delete-product-modal").style.display = "flex";
+        const okButton = document.querySelector("#delete-product-ok-confirm");
+
+        if (okButton) {
+            okButton.onclick = () => {
+                this.model.deleteProductById(productId, selectedStoreId)
+                    .then(() => this.model.fetchProducts(selectedStoreId))
+                    .then((products) => this.view.renderStoreDetails(this.view.selectedStoreInfo, products))
+                    .catch((error) => {
+                        console.error("Ошибка при удалении продукта: ", error);
+                        alert("Произошла ошибка при удалении продукта. Пожалуйста, повторите запрос позже!")
+                    })
+                    .finally(() => {
+                        this.closeDeleteProductConfirmPopup();
+                        this.view.showLoader(false);
+                    })
+                };
+        }
+    }
+
+    /**
+     * Closes the confirmation popup for deleting a product.
+     * @returns {void}
+     * @public
+     */
+    closeDeleteProductConfirmPopup = () => {
+        document.querySelector("#delete-product-modal").style.display = "none";
+    }
+
+    /**
+     * Shows the confirmation popup for deleting a store.
+     * @returns {void}
+     * @public
+     */
+    showDeleteStoreConfirmPopup = () => {
+        document.querySelector("#delete-store-modal").style.display = "flex";
+        const okButton = document.querySelector("#delete-store-ok-confirm");
+    
+        if (okButton) {
+            okButton.addEventListener("click", () => this.model.deleteStore(this.view.selectedStoreId))
+        }
+    }
+
+    /**
+     * Closes the confirmation popup for deleting a store.
+     * @returns {void}
+     * @public
+     */
+    closeDeleteStoreConfirmPopup = () => {
+        document.querySelector("#delete-store-modal").style.display = "none";
+    }
+
+    /**
+     * Shows the edit popup for a product.
+     * @param {string} id - The ID of the product to be edited.
+     * @param {string} selectedStoreId - The ID of the selected store.
+     * @returns {void}
+     * @public
+     */
+    showEditPopUp = (id, selectedStoreId) => {
+        this.model.getProductByid(id, selectedStoreId)
+            .then((product) => {
+                document.querySelector(".form-edit-product input[id='name']").value = product.Name;
+                document.querySelector(".form-edit-product input[id='product-price']").value = product.Price;
+                document.querySelector(".form-edit-product input[id='specs']").value = product.Specs;
+                document.querySelector(".form-edit-product input[id='rating']").value = product.Rating;
+                document.querySelector(".form-edit-product input[id='supplier']").value = product.SupplierInfo;
+                document.querySelector(".form-edit-product input[id='origin-country']").value = product.MadeIn;
+                document.querySelector(".form-edit-product input[id='production-name']").value = product.ProductionCompanyName;
+                document.querySelector(".form-edit-product select").value = product.Status;
+    
+                document.querySelector("#edit-product-form").style.display = "flex";
+    
+                const editButton = document.querySelector("#edit-product-button");
+    
+                editButton.onclick = () => {
+                    this.editProductSubmit(id);
+                }
+            })
+    }
+
+    /**
+     * Handles the form submission for editing a product.
+     * @param {string} id - The ID of the product to be edited.
+     * @returns {void}
+     * @public
+     */
+    editProductSubmit = (id) => {
+        this.view.showLoader(true);
+        const form = document.querySelector(".form-edit-product");
+    
+        if (form.checkValidity()) {
+            const inputs = form.querySelectorAll("input");
+            const inputsValues = [...inputs].map((input) => input.value);
+    
+            const select = form.querySelectorAll("select")
+            const selectValue = [...select].map((option) => option.value);
+    
+            const newProductData = {
+                "Name": inputsValues[0],
+                "Price": inputsValues[1],
+                "Photo": "photoURL",
+                "Specs": inputsValues[2],
+                "Rating": inputsValues[3],
+                "SupplierInfo": inputsValues[4],
+                "MadeIn": inputsValues[5],
+                "ProductionCompanyName": inputsValues[6],
+                "Status": selectValue,
+                "StoreId": this.view.selectedStoreId
+            }
+    
+            this.model.editProduct(newProductData, id, this.view.selectedStoreId)
+                .then((response) => {
+                    return this.model.fetchProducts(response.StoreId);
+                })
+                .then((products) => {
+                    this.view.renderStoreDetails(this.view.selectedStoreInfo, products);
+                })
+                .catch((error) => {
+                    console.error("Произошла ошибка при изменении продукта: ", error);
+                    alert("Произошла ошибка при изменении продукта. Пожалуйста, повторите запрос позже!")
+                })
+                .finally(() => {
+                    this.closeEditProductForm();
+                    this.view.showLoader(false);
+                })
+        } else {
+            alert("Форма не валидна. Пожалуйста, проверьте поля ввода!");
+            this.view.showLoader(false);
+        }
+    }
+
+    /**
+     * Closes the edit popup for a product.
+     * @returns {void}
+     * @public
+     */
+    closeEditProductForm = () => {
+        document.querySelector("#edit-product-form").style.display = "none";
+        this._resetFormInputs(".form-edit-product");
+    }
+}

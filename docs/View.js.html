@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: View.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: View.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Module providing View class of the application.
+ *
+ * @module View
+ */
+
+/**
+ * @class View
+ * @classdesc Class representing the view of the application.
+ */
+export class View {
+    /**
+     * Constructor for the View class.
+     * Initializes DOM elements and event listeners.
+     */
+    constructor() {
+        /**
+         * The input element for search functionality.
+         * @type {HTMLInputElement}
+         */
+        this.searchInput = document.querySelector(".search-container__search-input");
+        /**
+         * The button element for triggering search.
+         * @type {HTMLButtonElement}
+         */
+        this.searchButton = document.querySelector(".search-container__input-elements__button[title='Search']");
+        /**
+         * The button element for refreshing the view.
+         * @type {HTMLButtonElement}
+         */
+        this.refreshButton = document.querySelector(".search-container__input-elements__button[title='Refresh']");
+        /**
+         * The list element for rendering stores.
+         * @type {HTMLUListElement}
+         */
+        this.storesList = document.querySelector(".stores-list");
+        /**
+         * The section element for rendering store details.
+         * @type {HTMLElement}
+         */
+        this.mainSection = document.querySelector(".store-detail-container");
+        /**
+         * The loader element for indicating loading state.
+         * @type {HTMLElement}
+         */
+        this.loader = document.querySelector("#loader");
+
+        /**
+         * Represents the currently selected store element in the DOM.
+         * @type {HTMLLIElement|null}
+         */
+        this.selectedStore = null;
+        /**
+         * Represents the currently selected filter status button element in the DOM.
+         * @type {HTMLButtonElement|null}
+         */
+        this.selectedStatus = null;
+        /**
+         * Represents the column by which the table is currently sorted.
+         * @type {string|null}
+         */
+        this.currentSortColumn = null;
+        /**
+         * Represents the sort direction of the table ('asc' or 'desc').
+         * @type {string}
+         * @default 'asc'
+         */
+        this.sortDirection = "asc";
+        /**
+         * Represents the ID of the currently selected store.
+         * @type {string|null}
+         */
+        this.selectedStoreId = null;
+        /**
+         * Represents information about the selected store.
+         * @type {Array}
+         */
+        this.selectedStoreInfo = [];
+
+        /**
+         * Event listener for DOMContentLoaded event.
+         * @private
+         */
+        document.addEventListener("DOMContentLoaded", this.init);
+        /**
+         * Event listener for click on the search button.
+         * @private
+         */
+        this.searchButton.addEventListener("click", () => this.handleSearch());
+        /**
+         * Event listener for click on the refresh button.
+         * @private
+         */
+        this.refreshButton.addEventListener("click", () => this.handleRefresh());
+        /**
+         * Event listener for keydown on the search input.
+         * @private
+         * @param {KeyboardEvent} event - The keydown event object.
+         */
+        this.searchInput.addEventListener("keydown", (event) => this.handleSearchKeydown(event));
+        /**
+         * Event listener for click anywhere on the document.
+         * @private
+         * @param {MouseEvent} event - The click event object.
+         */
+        document.addEventListener("click", (event) => this.handleTableExpandText(event));
+        /**
+         * Event listener for click anywhere on the document to handle table sorting.
+         * @private
+         * @param {MouseEvent} event - The click event object.
+         */
+        document.addEventListener("click", (event) => this.handleSortTable(event));
+        /**
+         * Adds a click event listener to the "Create Store" button.
+         * Triggers the `createStoreButtonHandler` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".show-create-store-form-button").addEventListener("click", () => this.createStoreButtonHandler());
+        /**
+         * Adds a click event listener to the "Create Store" form submit button.
+         * Triggers the `createStoreSubmit` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".create-store-submit-button").addEventListener("click", () => this.createStoreSubmit());
+        /**
+         * Adds a click event listener to the "Cancel Create Store Form" button.
+         * Triggers the `closeCreateStoreForm` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".cancel-create-store-form-button").addEventListener("click", () => this.closeCreateStoreForm());
+        /**
+         * Adds a click event listener to the "Create Product" form submit button.
+         * Triggers the `createProductSubmit` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".create-product-submit-button").addEventListener("click", () => this.createProductSubmit());
+        /**
+         * Adds a click event listener to the "Cancel Create Product Form" button.
+         * Triggers the `closeCreateProductForm` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".cancel-create-product-form-button").addEventListener("click", () => this.closeCreateProductForm());
+        /**
+         * Adds a click event listener to the "Close Confirm Delete Store Popup" button.
+         * Triggers the `closeDeleteStoreConfirmPopup` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".close-confirm-delete-store-popup-button").addEventListener("click", () => this.closeDeleteStoreConfirmPopup());
+        /**
+         * Adds a click event listener to the "Cancel Edit Product Form" button.
+         * Triggers the `closeEditProductForm` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".cancel-edit-product-form-button").addEventListener("click", () => this.closeEditProductForm());
+        /**
+         * Adds a click event listener to the "Close Confirm Delete Product Popup" button.
+         * Triggers the `closeDeleteProductConfirmPopup` method when the button is clicked.
+         * @listens click
+         */
+        document.querySelector(".close-confirm-delete-product-popup-button").addEventListener("click",  () => this.closeDeleteProductConfirmPopup())
+
+        /**
+         * Empty function to be assigned later as an event handler for store item clicks.
+         * This function will be implemented in the Controller class.
+         * @private
+         */
+        this.handleStoreItemClick = () => {};
+        /**
+         * Empty function to be assigned later as an event handler for quick search actions.
+         * This function will be implemented in the Controller class.
+         * @private
+         */
+        this.handleQuickSearch = () => {};
+        /**
+         * Empty function to be assigned later as an event handler for product filtering.
+         * This function will be implemented in the Controller class.
+         * @private
+         */
+        this.filterProducts = () => {};
+        /**
+        * Empty function to be assigned later as an event handler for displaying an edit popup.
+        * This function will be implemented in the Controller class.
+        * @private
+        */
+        this.showEditPopUp = () => {};
+        /**
+         * Empty function to be assigned later as an event handler for displaying a delete product confirmation popup.
+         * This function will be implemented in the Controller class.
+         * @private
+         */
+        this.showDeleteProductConfirmPopup = () => {};
+    }
+
+    /**
+     * Shows or hides the loader based on the provided boolean value.
+     * @param {boolean} isTrue - Boolean value indicating whether to show or hide the loader.
+     * @returns {void}
+     * @public
+     */
+    showLoader = (isTrue) => {
+        if (isTrue) {
+            this.loader.style.display = "flex";
+        } else {
+            this.loader.style.display = "none";
+        }
+    }
+
+    /**
+     * Renders the list of stores in the UI.
+     * @param {Object[]} stores - An array of store objects to be rendered.
+     * @returns {void}
+     * @public
+     */
+    renderStores(stores) {
+        this.storesList.innerHTML = "";
+    
+        if (stores.length === 0) {
+            this.storesList.innerHTML = "&lt;div class='stores-list__no-matching'>No matching stores found.&lt;/div>";
+            return;
+        }
+    
+        stores.forEach(store => {
+            const storeItem = document.createElement("li");
+            storeItem.classList.add("stores-list__item");
+            storeItem.innerHTML = `
+                &lt;div class="stores-list__item__left">
+                    &lt;p class="stores-list__item__item-name">${store.Name}&lt;/p>
+                    &lt;p class="stores-list__item__item-address">${store.Address}&lt;/p>
+                &lt;/div>
+                &lt;p class="stores-list__item__item-square">${store.FloorArea}&lt;/p>
+            `;
+    
+            storeItem.addEventListener("click", () => {
+                this.handleStoreItemClick(storeItem, store);
+            });
+    
+            this.storesList.append(storeItem);
+        });
+    }
+
+    /**
+     * Renders the detailed information about a store and its products in the UI.
+     * @param {Object} store - The store object to be rendered.
+     * @param {Object[]} products - An array of product objects associated with the store.
+     * @returns {void}
+     * @public
+     */
+    renderStoreDetails(store, products) {
+        const storeInfoSection = this.renderStoreInfo(store);
+        const actionButtons = this.renderActionButtons();
+        const filterButtons = this.renderFilterButtons(products);
+    
+        const productsTable = this.renderProductsTable(products);
+    
+        this.renderStoreHeader(store);
+        this.renderTableSpace(storeInfoSection, actionButtons, filterButtons, productsTable);
+        
+        
+        document.querySelector('.filter-buttons').addEventListener('click', (event) => this.handleFilterStatus(event));
+        document.querySelector('.show-create-product-form-button').addEventListener("click", () => this.createProductButtonHandler());
+        document.querySelector('.show-delete-store-form-button').addEventListener("click", () => this.showDeleteStoreConfirmPopup());
+        document.querySelector("#products-table-id").addEventListener("click", (event) => this.handleEditPopUp(event));
+        document.querySelector("#products-table-id").addEventListener("click", (event) => this.handleDeleteProductPopUp(event));
+    }
+
+    /**
+     * Handles the click event on the "Edit" icon in the products table.
+     * @param {Event} event - The click event object.
+     * @returns {void}
+     * @public
+     */
+    handleEditPopUp(event) {
+        if (event.target.classList.contains("edit-product-icon")) {
+            const id = event.target.getAttribute('data-product-id');
+            this.showEditPopUp(id, this.selectedStoreId);
+        }
+    }
+
+    /**
+     * Handles the click event on the "Delete" button in the products table.
+     * @param {Event} event - The click event object.
+     * @returns {void}
+     * @public
+     */
+    handleDeleteProductPopUp(event) {
+        if (event.target.classList.contains("js-delete-product-button")) {
+            const id = event.target.getAttribute('data-product-id');
+            this.showDeleteProductConfirmPopup(id, this.selectedStoreId);
+        }
+    }
+
+    /**
+     * Handles the click event on the filter buttons to filter products by status.
+     * @param {Event} event - The click event object.
+     * @returns {void}
+     * @public
+     */
+    handleFilterStatus(event) {
+        if (event.target.classList.contains("filter-buttons__filter-button")) {
+            const status = event.target.getAttribute('data-status');
+            this.filterProducts(status);
+        }
+    }
+
+    /**
+     * Renders the header section of the store details.
+     * @param {Object} store - The store information.
+     * @returns {void}
+     * @public
+     */
+    renderStoreHeader(store) {
+        this.mainSection.innerHTML = `
+            &lt;header class="store-detail__header">
+                &lt;h3>${store.Name}&lt;/h3>
+            &lt;/header>`;
+    }
+
+    /**
+     * Renders the main table space, including store information, action buttons, filter buttons, and the products table.
+     * @param {string} storeInfoSection - HTML representation of the store information section.
+     * @param {string} actionButtons - HTML representation of the action buttons.
+     * @param {string} filterButtons - HTML representation of the filter buttons.
+     * @param {string} productsTable - HTML representation of the products table.
+     * @returns {void}
+     * @public
+     */
+    renderTableSpace(storeInfoSection, actionButtons, filterButtons, productsTable) {
+        this.mainSection.innerHTML += `
+            &lt;div class="table-space">
+                &lt;div class="store-detail__titleandbuttons">
+                    ${storeInfoSection}
+                    ${actionButtons}
+                    ${filterButtons}
+                &lt;/div>
+                &lt;table class="products-table">
+                    &lt;thead>
+                        &lt;tr>
+                            &lt;th colspan="8" class="products-table__header">
+                                &lt;span class="header-left">Products&lt;/span>
+                                &lt;input class="header-right" type="text" id="quickSearchInput" placeholder="Quick Search">
+                            &lt;/th>
+                        &lt;/tr>
+                        &lt;tr class="products-table__column-names">
+                            &lt;th class="products-table__column-names__cell-header__name js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Name&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__price js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Price&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__specs js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Specs&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__supplier-info js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Supplier Info&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__country js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Country of origin&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__prod-company js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Prod. company&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__rating js-sort-header">&lt;span class="js-sort-icon">&lt;/span>Rating&lt;/th>
+                            &lt;th class="products-table__column-names__cell-header__expand">&lt;/th>
+                        &lt;/tr>
+                    &lt;/thead>
+                    &lt;tbody id="products-table-id">
+                        ${productsTable}
+                    &lt;/tbody>
+                &lt;/table>
+                ${this.renderFooter()}
+            &lt;/div>
+        `;
+
+        this.mainSection.querySelector("#quickSearchInput").addEventListener("input", this.handleQuickSearch);
+    }
+
+    /**
+     * Renders the store information section.
+     * @param {Object} store - The store information.
+     * @returns {string} - HTML representation of the store information section.
+     * @public
+     */
+    renderStoreInfo(store) {
+        return `
+            &lt;div class="store-detail__header__title">
+                &lt;div class="store-info">
+                    &lt;div class="store-info__left">
+                        &lt;div class="store-info__email">&lt;span class="store-info__item">Email:
+                            &lt;/span>${store.Email}&lt;/div>
+                        &lt;div class="store-info__phone">&lt;span class="store-info__item">Phone
+                                Number: &lt;/span>${store.PhoneNumber}
+                        &lt;/div>
+                        &lt;div class="store-info__address">&lt;span class="store-info__item">Address: &lt;/span>${store.Address}&lt;/div>
+                    &lt;/div>
+                    &lt;div class="store-info__right">
+                        &lt;div class="store-info__date">&lt;span class="store-info__item">Established Date: &lt;/span>${new Date(store.Established).toLocaleDateString()}&lt;/div>
+                        &lt;div class="store-info__square">&lt;span class="store-info__item">Floor Area: &lt;/span>${store.FloorArea}&lt;/div>
+                    &lt;/div>
+                &lt;/div>
+            &lt;/div>
+        `;
+    }
+
+    /**
+     * Renders the action buttons section.
+     * @returns {string} - HTML representation of the action buttons section.
+     * @public
+     */
+    renderActionButtons() {
+        return `
+            &lt;div class="action-buttons-main">
+                &lt;button class="action-buttons__button" title="Collapse">&lt;span class="collapse-icon">&lt;/span>&lt;/button>
+                &lt;button class="action-buttons__button" title="Pin">&lt;span class="pin-icon">&lt;/span>&lt;/button>
+            &lt;/div>
+        `;
+    }
+
+    /**
+     * Calculates the counts of products based on their status.
+     * @param {Object[]} products - Array of product objects.
+     * @returns {Object} - Object containing counts for total, ok, storage, and out-of-stock products.
+     * @public
+     */
+    calculateStatusCounts(products) {
+        const totalProducts = products.length;
+        const okProducts = products.filter(product => product.Status === "OK").length;
+        const storageProducts = products.filter(product => product.Status === "STORAGE").length;
+        const outOfStockProducts = products.filter(product => product.Status === "OUT_OF_STOCK").length;
+    
+        return {
+            totalProducts,
+            okProducts,
+            storageProducts,
+            outOfStockProducts
+        };
+    }
+
+    /**
+     * Renders the filter buttons section based on product status counts.
+     * @param {Object[]} products - Array of product objects.
+     * @returns {string} - HTML representation of the filter buttons section.
+     * @public
+     */
+    renderFilterButtons(products) {
+        const {
+            totalProducts,
+            okProducts,
+            storageProducts,
+            outOfStockProducts
+        } = this.calculateStatusCounts(products);
+    
+        return `
+            &lt;div class="filter-buttons">
+                &lt;div class="filter-buttons__all">&lt;button class="filter-buttons__filter-button filter-buttons__filter-button-all" data-status="ALL">&lt;p>${totalProducts}&lt;/p>&lt;span>All&lt;/span>&lt;/button>&lt;/div>
+                &lt;div class="filter-buttons__sort">
+                    &lt;button class="filter-buttons__filter-button filter-buttons__filter-button-ok" data-status="OK">&lt;span class="ok-status-icon">&lt;/span>&lt;p>${okProducts}&lt;/p>&lt;span>Ok&lt;/span>&lt;/button>
+                    &lt;button class="filter-buttons__filter-button filter-buttons__filter-button-storage" data-status="STORAGE">&lt;span class="storage-status-icon">&lt;/span>&lt;p>${storageProducts}&lt;/p>&lt;span>Storage&lt;/span>&lt;/button>
+                    &lt;button class="filter-buttons__filter-button filter-buttons__filter-button-out_of_stock" data-status="OUT_OF_STOCK">&lt;span class="out-status-icon">&lt;/span>&lt;p>${outOfStockProducts}&lt;/p>&lt;span>Out of Stock&lt;/span>&lt;/button>
+                &lt;/div>
+            &lt;/div>
+        `;
+    }
+
+    /**
+     * Toggles the sort icon in the table header for a given column.
+     * @param {HTMLElement} sortIcon - The sort icon element.
+     * @param {number} columnIndex - The index of the column.
+     * @returns {void}
+     * @public
+     */
+    toggleSortIcon(sortIcon, columnIndex) {
+        if (this.currentSortColumn !== null &amp;&amp; this.currentSortColumn !== columnIndex) {
+            this.resetSortIcon(this.currentSortColumn);
+        }
+    
+        const isAsc = sortIcon.classList.contains("js-sort-icon-asc");
+        const isDesc = sortIcon.classList.contains("js-sort-icon-desc");
+    
+        if (isAsc) {
+            sortIcon.classList.remove("js-sort-icon-asc");
+            sortIcon.classList.add("js-sort-icon-desc");
+            this.sortDirection = "desc";
+        } else if (isDesc) {
+            sortIcon.classList.remove("js-sort-icon-desc");
+            sortIcon.classList.add("js-sort-icon-asc");
+            this.sortDirection = "asc";
+        } else {
+            sortIcon.classList.add("js-sort-icon-asc");
+            this.sortDirection = "asc";
+        }
+    
+        this.currentSortColumn = columnIndex;
+    }
+
+    /**
+     * Resets the sort icon for a given column to its default state.
+     * @param {number} columnIndex - The index of the column.
+     * @returns {void}
+     * @public
+     */
+    resetSortIcon(columnIndex) {
+        const headers = document.querySelectorAll(".js-sort-header");
+        headers[columnIndex].querySelector(".js-sort-icon").classList.remove("js-sort-icon-asc", "js-sort-icon-desc");
+    }
+
+    /**
+     * Renders the products table based on an array of product objects.
+     * @param {Object[]} products - Array of product objects.
+     * @returns {string} - HTML representation of the products table.
+     * @public
+     */
+    renderProductsTable(products) {
+        return products.map((product) => `
+            &lt;tr class="table-row-product">
+                &lt;td class="products-table__cell__name js-expandable-cell" title="${product.Name}" data-sort="${product.Name}" data-sort-status="${product.Status}">
+                    &lt;p>${product.Name}&lt;/p>
+                &lt;/td>
+                &lt;td class="products-table__cell__price" data-sort="${product.Price}">
+                    &lt;p>${product.Price}&lt;span class="usd-span">USD&lt;/span>&lt;/p>
+                &lt;/td>
+                &lt;td class="products-table__cell__specs js-expandable-cell" title="${product.Specs}" data-sort="${product.Specs}">${product.Specs}&lt;/td>
+                &lt;td class="products-table__cell__supplier-info js-expandable-cell" title="${product.SupplierInfo}" data-sort="${product.SupplierInfo}">${product.SupplierInfo}&lt;/td>
+                &lt;td class="products-table__cell__country js-expandable-cell" data-sort="${product.MadeIn}">${product.MadeIn}&lt;/td>
+                &lt;td class="products-table__cell__prod-company js-expandable-cell" data-sort="${product.ProductionCompanyName}">${product.ProductionCompanyName}&lt;/td>
+                &lt;td class="products-table__cell__rating" data-sort="${product.Rating}">${product.Rating}&lt;/td>
+                &lt;td class="products-table__cell__js-scenario-buttons">
+                    &lt;span class="edit-product-icon" data-product-id="${product.id}">&lt;/span>
+                    &lt;span class="js-delete-product-button" id="js-delete-product-button" data-product-id="${product.id}">&lt;/span>
+                &lt;/td>
+            &lt;/tr>
+        `).join("");
+    }
+
+    /**
+     * Renders the footer section of the store details.
+     * @returns {string} - HTML representation of the footer section.
+     * @public
+     */
+    renderFooter() {
+        return `
+            &lt;footer class="store-detail__footer">
+                &lt;button class="stores-footer__button--create show-create-product-form-button" id="create-product-button">&lt;span class="stores-footer__button--create-icon">&lt;/span>&lt;span> Create&lt;/span>&lt;/button>
+                &lt;button class="stores-footer__button--delete show-delete-store-form-button" id="delete-store-button">&lt;span class="stores-footer__button--delete-icon">&lt;/span>&lt;span> Delete&lt;/span>&lt;/button>
+            &lt;/footer>
+        `;
+    }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Controller.html">Controller</a></li><li><a href="module-Model.html">Model</a></li><li><a href="module-View.html">View</a></li><li><a href="module-apiUtils.html">apiUtils</a></li><li><a href="module-main.html">main</a></li></ul><h3>Externals</h3><ul><li><a href="external-Controller.html">Controller</a></li><li><a href="external-Model.html">Model</a></li><li><a href="external-View.html">View</a></li><li><a href="external-sendRequest.html">sendRequest</a></li></ul><h3>Classes</h3><ul><li><a href="module-Controller.Controller.html">Controller</a></li><li><a href="module-Controller-Controller.html">Controller</a></li><li><a href="module-Model-Model.html">Model</a></li><li><a href="module-View.View.html">View</a></li><li><a href="module-View-View.html">View</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon Jan 15 2024 19:27:08 GMT+0300 (Москва, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

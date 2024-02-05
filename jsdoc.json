@@ -1,0 +1,9 @@
+{
+    "source": {
+        "include": ["./"],
+        "exclude": ["./.git", "./README.md", "./.vscode"]
+    },
+    "opts": {
+        "destination": "./docs"
+    }
+}
